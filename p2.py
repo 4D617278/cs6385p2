@@ -37,6 +37,10 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
 
         # get n nearest points
         n = min_deg - (len(adj) + 1)
+
+        if n <= 0:
+            continue
+
         distances = np.sum((points - points[p]) ** 2, 1)
 
         distances[center] = np.inf
