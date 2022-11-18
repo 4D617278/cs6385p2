@@ -82,17 +82,17 @@ def m_means(points, means, point_means):
     pass
 
 def plot(tests, graphs):
-    # plt.figure(figsize=(20, 20))
-
     for alg in Algs:
         for i in range(len(graphs[alg])):
-            pos = {c: point for c, point in enumerate(tests[i])}
+            pos = {p: point for p, point in enumerate(tests[i])}
+            ax = plt.axes()
             G = nx.from_numpy_matrix(graphs[alg][i])
-            nx.draw(G, pos=pos)
-            #labels = nx.get_edge_attributes(G, 'weight')
-            #nx.draw_networkx_edge_labels(G, edge_labels=labels)
-            plt.title(f'Algorithm {alg}, Test {i}')
-            plt.savefig(f'alg{alg}_graph{i}.png')
+            nx.draw(G, pos, ax, node_size=50)
+            ax.set_title(f'Algorithm {alg}, Test {i}')
+            ax.tick_params(left=True, bottom=True,
+                           labelleft=True, labelbottom=True)
+            plt.axis("on")
+            plt.savefig(f'alg{alg + 1}_graph{i}.png')
             plt.clf()
 
 def main():
