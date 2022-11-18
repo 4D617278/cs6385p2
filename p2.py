@@ -23,8 +23,8 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
     center = np.argmin(np.sum((points - gmean) ** 2, 1))
 
     # make link to center for non-center nodes
-    # diagonals are ignored
     graph[:, center] = 1
+    graph[center, center] = 0
 
     # remove center
     point_set = set(range(len(points)))
