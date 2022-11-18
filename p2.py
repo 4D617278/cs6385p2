@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from enum import IntEnum
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 
 MIN_DEGREE = 3
@@ -33,7 +35,8 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
     # make links to nearest nodes
     for p in point_set:
         # get adjacent nodes
-        adj = np.flatnonzero(graph[:, p] == 1)
+        #adj = np.flatnonzero(graph[:, p] == 1)
+        adj = np.flatnonzero(graph[:, p] > 0)
 
         # get n nearest points
         n = min_deg - (len(adj) + 1)
@@ -77,7 +80,20 @@ def m_means(points, means, point_means):
 
     # use expectation as mean
     pass
-     
+
+def plot(tests, graphs):
+    # plt.figure(figsize=(20, 20))
+
+    for alg in Algs:
+        for i in range(len(graphs[alg])):
+            pos = {c: point for c, point in enumerate(tests[i])}
+            G = nx.from_numpy_matrix(graphs[alg][i])
+            nx.draw(G, pos=pos)
+            #labels = nx.get_edge_attributes(G, 'weight')
+            #nx.draw_networkx_edge_labels(G, edge_labels=labels)
+            plt.title(f'Algorithm {alg}, Test {i}')
+            plt.savefig(f'alg{alg}_graph{i}.png')
+            plt.clf()
 
 def main():
     tests = np.random.random((NUM_TESTS, NUM_POINTS, NUM_DIM))
@@ -85,6 +101,8 @@ def main():
     for i in range(len(tests)):
         alg1(tests[i], graphs[Algs.alg1][i])
         #alg2(tests[i])
+
+    plot(tests, graphs)
 
 if __name__ == '__main__':
     main()
