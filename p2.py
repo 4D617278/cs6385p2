@@ -48,11 +48,11 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
     # make links to nearest nodes
     for p in point_set:
-        # get adjacent nodes
-        adj = np.flatnonzero(graph[:, p] > 0)
+        # get adjacent nodes (include center)
+        adj = np.flatnonzero(graph[:, p] > 0) + 1
 
         # get n nearest points
-        n = min_deg - (len(adj) + 1)
+        n = min_deg - len(adj)
 
         if n <= 0:
             continue
