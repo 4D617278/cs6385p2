@@ -30,7 +30,8 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     # include then ignore center
     n = len(points) - min_deg
     nearest = np.argpartition(lengths, n)
-    min_lengths = lengths[np.arange(len(points))[:, None], nearest[:, :n]]
+    indices = np.arange(len(points))[:, None]
+    min_lengths = lengths[indices, nearest[:, :n]]
     min_length_sums = np.sum(min_lengths, 1)
     center = np.argmin(min_length_sums)
 
@@ -43,12 +44,15 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     # add length sum
     sum = min_length_sums[center]
 
-    # remove center
-    point_set = set(range(len(points)))
-    point_set.remove(center)
+    # order by largest link length sum for m nearest nodes
+    n = min_deg
+    nearest = np.argpartition(lengths, n)
+    min_lengths = lengths[indices, nearest[:, :n]]
+    min_length_sums = np.sum(min_lengths, 1)
+    sorted_points = np.argsort(min_length_sums)[::-1]
 
     # make links to nearest nodes
-    for p in point_set:
+    for p in sorted_points:
         # get adjacent nodes
         edges = graph[:, p] > 0
         edges[center] = graph[p, center] > 0
