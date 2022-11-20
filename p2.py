@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
+MAX_DIAM = 4
 MIN_DEGREE = 3
 NUM_POINTS = 15
 NUM_DIM = 2
@@ -13,7 +14,7 @@ class Algs(IntEnum):
     alg1 = 0    
     alg2 = 1
 
-def alg1(points, graph, min_deg=MIN_DEGREE):
+def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     # min_deg < len(points)
     if min_deg >= len(points):
         return
@@ -26,13 +27,16 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
 
     sum = 0
 
-    # make link to center for non-center nodes
-    graph[:, center] = 1
+    # make link to center for (n - max_diam) nearest nodes
+    lengths = np.sqrt(np.sum((points - points[center]) ** 2, 1))
+    # include center then ignore
+    n = len(points) - max_diam + 1
+    nearest = np.argpartition(lengths, n)
+    graph[nearest[:n], center] = 1
     graph[center, center] = 0
 
     # add lengths
-    lengths = np.sqrt(np.sum((points - points[center]) ** 2, 1))
-    sum += np.sum(lengths)
+    sum += np.sum(lengths[nearest[:n]])
 
     # remove center
     point_set = set(range(len(points)))
@@ -41,7 +45,6 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
     # make links to nearest nodes
     for p in point_set:
         # get adjacent nodes
-        #adj = np.flatnonzero(graph[:, p] == 1)
         adj = np.flatnonzero(graph[:, p] > 0)
 
         # get n nearest points
@@ -70,29 +73,40 @@ def alg1(points, graph, min_deg=MIN_DEGREE):
 
     return sum
 
-def alg2(points, min_deg=MIN_DEGREE, num_means=-1):
-    # initialize means
-    if num_means <= 0:
-        num_means = len(points) // (min_deg + 1)
-        means = np.random.random((num_means, NUM_DIM))
-    else:
-        means = np.random.random((num_means, NUM_DIM))
-
-    point_means = np.empty(len(points))
-    m_means(points, means, point_means)
-    print(means)
-
-def min_metric(means):
+def alg2(points, min_deg=MIN_DEGREE):
     pass
 
-def m_means(points, means, point_means):
-    # map points to closest means
-    #min_metric(means)
-
-    # for point in points:
-
-    # use expectation as mean
-    pass
+#def exp_max(points, means):
+#    # initialize means
+#    if num_means <= 0:
+#        num_means = len(points) // (min_deg + 1)
+#        means = np.random.random((num_means, NUM_DIM))
+#    else:
+#        means = np.random.random((num_means, NUM_DIM))
+#
+#    prev_error = 0
+#    error = prev_error + 1
+#    new_means = np.empty(means.shape, np.float64)
+#    centers = np.empty(len(means), int)
+#
+#    while error > prev_error:
+#        prev_error = error
+#        for i in range(len(means)):
+#            inv_lengths = 1 / np.sqrt(np.sum((means[i] - points) ** 2, 1))
+#            probs = inv_lengths / np.sum(inv_lengths)
+#            new_means[i] = np.sum(probs[:, None] * points, 0)
+#        means = np.copy(new_means)
+#        error = 0
+#        for i in range(len(means)):
+#            lengths = np.sqrt(np.sum((means[i] - points) ** 2, 1))
+#            error += np.sum(lengths)
+#        print(f'Error: {error}')
+#
+#    for i in range(len(means)):
+#        lengths = np.sum((means[i] - points) ** 2, 1)
+#        centers[i] = np.argmin(lengths)
+#
+#    return centers
 
 def plot(tests, graphs, sums):
     for alg in Algs:
@@ -110,12 +124,13 @@ def plot(tests, graphs, sums):
 
 def main():
     tests = np.random.random((NUM_TESTS, NUM_POINTS, NUM_DIM))
-    graphs = np.zeros((len(Algs), NUM_TESTS, NUM_POINTS, NUM_POINTS), dtype=np.uint8)
+    graphs = np.zeros((len(Algs), NUM_TESTS, NUM_POINTS, NUM_POINTS), np.uint8)
     sums = np.zeros((len(Algs), NUM_TESTS))
     for i in range(len(tests)):
         sums[Algs.alg1][i] = alg1(tests[i], graphs[Algs.alg1][i])
-        #alg2(tests[i])
+        alg2(tests[i])
 
+    print(f'Mean: {np.mean(sums[Algs.alg1])}')
     plot(tests, graphs, sums)
 
 if __name__ == '__main__':
