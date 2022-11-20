@@ -19,6 +19,10 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     if min_deg >= len(points):
         return
 
+    # max_diam <= 4 for (n - min_deg - 1) proof
+    if max_diam > 4:
+        return
+
     # geometric mean
     gmean = np.mean(points, 0)
     
@@ -27,10 +31,10 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
     sum = 0
 
-    # make link to center for (n - max_diam) nearest nodes
+    # make link to center for (n - min_deg - 1) nearest nodes
     lengths = np.sqrt(np.sum((points - points[center]) ** 2, 1))
     # include center then ignore
-    n = len(points) - max_diam + 1
+    n = len(points) - min_deg - 1
     nearest = np.argpartition(lengths, n)
     graph[nearest[:n], center] = 1
     graph[center, center] = 0
