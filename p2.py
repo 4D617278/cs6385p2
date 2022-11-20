@@ -19,15 +19,16 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     if min_deg >= len(points):
         return
 
-    # max_diam <= 4 for (n - min_deg - 1) proof
-    if max_diam > 4:
+    # max_diam >= 4 for (n - min_deg - 1) proof
+    if max_diam < 4:
         return
 
     # compute lengths between each point
     lengths = np.sqrt(np.sum((points[:, None] - points[None, :]) ** 2, 2))
 
     # find point with min length to (n - min_deg - 1) nodes
-    n = len(points) - min_deg - 1 - 1
+    # include then ignore center
+    n = len(points) - min_deg
     nearest = np.argpartition(lengths, n)
     min_lengths = lengths[np.arange(len(points))[:, None], nearest[:, :n]]
     min_length_sums = np.sum(min_lengths, 1)
@@ -48,17 +49,20 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
     # make links to nearest nodes
     for p in point_set:
-        # get adjacent nodes (include center)
-        adj = np.flatnonzero(graph[:, p] > 0) + 1
+        isAdjCenter = (graph[p, center] > 0)
+
+        # get adjacent nodes
+        adj = np.flatnonzero(graph[:, p] > 0)
 
         # get n nearest points
-        n = min_deg - len(adj)
+        n = min_deg - (len(adj) + isAdjCenter)
 
         if n <= 0:
             continue
 
         lengths_copy = np.copy(lengths[p])
-        lengths_copy[center] = np.inf
+        if isAdjCenter:
+            lengths_copy[center] = np.inf
         lengths_copy[adj] = np.inf
         lengths_copy[p] = np.inf
         nearest = np.argpartition(lengths_copy, n)
