@@ -23,24 +23,24 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     if max_diam > 4:
         return
 
-    # geometric mean
-    gmean = np.mean(points, 0)
-    
-    # map to closest point
-    center = np.argmin(np.sum((points - gmean) ** 2, 1))
+    # compute lengths between each point
+    lengths = np.sqrt(np.sum((points[:, None] - points[None, :]) ** 2, 2))
 
-    sum = 0
+    # find point with min length to (n - min_deg - 1) nodes
+    n = len(points) - min_deg - 1 - 1
+    nearest = np.argpartition(lengths, n)
+    min_lengths = lengths[np.arange(len(points))[:, None], nearest[:, :n]]
+    min_length_sums = np.sum(min_lengths, 1)
+    center = np.argmin(min_length_sums)
 
     # make link to center for (n - min_deg - 1) nearest nodes
-    lengths = np.sqrt(np.sum((points - points[center]) ** 2, 1))
-    # include center then ignore
-    n = len(points) - min_deg - 1
-    nearest = np.argpartition(lengths, n)
-    graph[nearest[:n], center] = 1
+    graph[nearest[:, :n][center], center] = 1
+    
+    # remove self loop
     graph[center, center] = 0
 
-    # add lengths
-    sum += np.sum(lengths[nearest[:n]])
+    # add length sum
+    sum = min_length_sums[center]
 
     # remove center
     point_set = set(range(len(points)))
@@ -57,23 +57,17 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
         if n <= 0:
             continue
 
-        squared_lengths = np.sum((points - points[p]) ** 2, 1)
-
-        squared_lengths[center] = np.inf
-        squared_lengths[adj] = np.inf
-        squared_lengths[p] = np.inf
-
-        nearest = np.argpartition(squared_lengths, n)
+        lengths_copy = np.copy(lengths[p])
+        lengths_copy[center] = np.inf
+        lengths_copy[adj] = np.inf
+        lengths_copy[p] = np.inf
+        nearest = np.argpartition(lengths_copy, n)
 
         # add edges
         graph[p][nearest[:n]] = 1
 
         # add lengths
-        lengths = np.sqrt(squared_lengths[nearest[:n]])
-        sum += np.sum(lengths)
-
-    print(graph)
-    print(sum)
+        sum += np.sum(lengths_copy[nearest[:n]])
 
     return sum
 
