@@ -26,9 +26,11 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
     # compute lengths between each point
     lengths = np.sqrt(np.sum((points[:, None] - points[None, :]) ** 2, 2))
 
+    # do not allow loops
+    np.fill_diagonal(lengths, np.inf)
+
     # find point with min length to (n - min_deg - 1) nodes
-    # include then ignore center
-    n = len(points) - min_deg
+    n = len(points) - min_deg - 1
     nearest = np.argpartition(lengths, n)
     indices = np.arange(len(points))[:, None]
     min_lengths = lengths[indices, nearest[:, :n]]
@@ -37,9 +39,6 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
     # make link to center for (n - min_deg - 1) nearest nodes
     graph[nearest[:, :n][center], center] = 1
-    
-    # remove self loop
-    graph[center, center] = 0
 
     # add length sum
     sum = min_length_sums[center]
@@ -66,7 +65,6 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
         lengths_copy = np.copy(lengths[p])
         lengths_copy[adj] = np.inf
-        lengths_copy[p] = np.inf
         nearest = np.argpartition(lengths_copy, n)
 
         # add edges
