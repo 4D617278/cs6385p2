@@ -31,22 +31,22 @@ def alg1(points, graph, min_deg=MIN_DEGREE, max_diam=MAX_DIAM):
 
     # find point with min length to (n - min_deg - 1) nodes
     n = len(points) - min_deg - 1
-    nearest = np.argpartition(lengths, n)
+    nearest = np.argpartition(lengths, n)[:, :n]
     indices = np.arange(len(points))[:, None]
-    min_lengths = lengths[indices, nearest[:, :n]]
+    min_lengths = lengths[indices, nearest]
     min_length_sums = np.sum(min_lengths, 1)
     center = np.argmin(min_length_sums)
 
     # make link to center for (n - min_deg - 1) nearest nodes
-    graph[nearest[:, :n][center], center] = 1
+    graph[nearest[center], center] = 1
 
     # add length sum
     sum = min_length_sums[center]
 
     # order by largest link length sum for m nearest nodes
     n = min_deg
-    nearest = np.argpartition(lengths, n)
-    min_lengths = lengths[indices, nearest[:, :n]]
+    nearest = np.argpartition(lengths, n)[:, :n]
+    min_lengths = lengths[indices, nearest]
     min_length_sums = np.sum(min_lengths, 1)
     sorted_points = np.argsort(min_length_sums)[::-1]
 
